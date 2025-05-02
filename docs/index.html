@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste de Reação - Sniper</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: url('https://cur.cursors-4u.net/cursors/cur-9/cur832.cur'), crosshair;
+    }
+
+    #startBtn {
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: #2ecc71;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #target {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: red;
+      display: none;
+      cursor: crosshair;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    #stats {
+      margin-top: 15px;
+      font-size: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <button id="startBtn">Iniciar Teste</button>
+  <div id="target"></div>
+  <div id="message">Clique em "Iniciar Teste" e aguarde o alvo</div>
+  <div id="stats"></div>
+
+  <!-- Sons -->
+  <audio id="alertSound" src="https://cdn.pixabay.com/audio/2021/09/01/audio_142a776c02.mp3"></audio>
+  <audio id="shotSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_58e3e2d457.mp3"></audio>
+
+  <script>
+    const startBtn = document.getElementById("startBtn");
+    const target = document.getElementById("target");
+    const message = document.getElementById("message");
+    const stats = document.getElementById("stats");
+    const alertSound = document.getElementById("alertSound");
+    const shotSound = document.getElementById("shotSound");
+
+    let startTime, reactionTime, timeoutId;
+    let times = [];
+
+    function getRandomPosition() {
+      const x = Math.random() * (window.innerWidth - 100);
+      const y = Math.random() * (window.innerHeight - 100);
+      return { x, y };
+    }
+
+    function updateStats() {
+      if (times.length === 0) return;
+      const total = times.reduce((a, b) => a + b, 0);
+      const avg = (total / times.length).toFixed(1);
+      const best = Math.min(...times);
+      const worst = Math.max(...times);
+      stats.innerHTML = `
+        Último: ${reactionTime} ms<br>
+        Melhor: ${best} ms | Pior: ${worst} ms<br>
+        Média: ${avg} ms (${times.length} tentativas)
+      `;
+    }
+
+    function startTest() {
+      startBtn.disabled = true;
+      message.textContent = "Aguarde...";
+      target.style.display = "none";
+
+      const delay = Math.random() * 3000 + 2000;
+      timeoutId = setTimeout(() => {
+        const { x, y } = getRandomPosition();
+        target.style.left = x + "px";
+        target.style.top = y + "px";
+        target.style.display = "block";
+        alertSound.play();
+        startTime = Date.now();
+      }, delay);
+    }
+
+    target.addEventListener("click", () => {
+      reactionTime = Date.now() - startTime;
+      times.push(reactionTime);
+      target.style.display = "none";
+      message.textContent = Tempo de reação: ${reactionTime} ms;
+      shotSound.play();
+      updateStats();
+      startBtn.disabled = false;
+    });
+
+    startBtn.addEventListener("click", () => {
+      clearTimeout(timeoutId);
+      startTest();
+    });
+  </script>
+</body>
+</html>
